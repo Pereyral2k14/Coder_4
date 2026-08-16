@@ -1,0 +1,186 @@
+{
+  "name": "worker1_modulo3_pereyra_leonardo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7f30a8d9-5a34-40f2-a046-75473d3d4b8a",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(item => item.json);\nreturn {\n  json: {\n    status: \"success\",\n    worker: \"Worker1_Catalogo_Servicios\",\n    timestamp: new Date().toISOString(),\n    data: {\n      total_servicios: items.length,\n      servicios: items,\n      mensaje: \"Catálogo de Barbería Akira obtenido exitosamente desde Google Sheets.\"\n    }\n  }\n};"
+      },
+      "id": "0e556d8d-3e11-41ce-85df-b4f366521853",
+      "name": "Formatear Respuesta Worker 1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=[ROL CORPORATIVO]\nSos el asistente virtual oficial de atención al cliente y calificación de consultas de \"Barbería Akira\". Tu tono es profesional, cordial, eficiente y formal.\n\n[INICIO DE CONTEXTO COMPARTIDO]\nCONFIGURACIÓN DE IDENTIDAD Y MEMORIA DE LARGO PLAZO\nEl usuario se llama {{ $json.Nombre }}. El contexto de vuestra última charla es: {{ $json.Resumen_Consolidado }}.\n[FIN DEL CONTEXTO COMPARTIDO]\n\n[ÁMBITO]\nTu ámbito de actuación se limita exclusivamente a responder consultas sobre los servicios, precios, horarios de atención, ubicación y políticas de turno de Barbería Akira.\n\n[OBJETIVO]\n1. Atender a los clientes de forma clara y rápida.\n2. Proporcionar información precisa sobre cortes de cabello, barba, perfilado y combos disponibles utilizando tus herramientas.\n3. Precalificar al usuario para la posterior reserva de turnos.\n\n[REGLAS Y ESCALAMIENTO]\n- Exclusión total de lenguaje inclusivo: Utilizá un español neutro/argentino estándar y formal (ej. \"bienvenido/a\", \"estimado cliente\").\n- NUNCA inventes o asumas precios ni duración de servicios. Consulta siempre tu herramienta 'Google Sheets Tool'.\n- Si la consulta del cliente supera tu ámbito de conocimiento o requiere atención humana directa, indícale amablemente que su consulta será derivada al equipo de la barbería.",
+          "maxIterations": 7
+        }
+      },
+      "id": "4683fec6-72bb-4039-b1a1-31e022f90565",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "62f08cee-6e56-4deb-b431-d2d77c5619cd",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "wLQTQv52uylmo5W3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "12f1028c-ae17-4bce-81a9-3edc4bd7c2ad",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        192,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Yta-1brlj3SumbA11fTuKGcd38upIutWW3I3c2YVxmo",
+          "mode": "list",
+          "cachedResultName": "Barbería Akira - Catálogo y Servicios",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Yta-1brlj3SumbA11fTuKGcd38upIutWW3I3c2YVxmo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Servicios",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Yta-1brlj3SumbA11fTuKGcd38upIutWW3I3c2YVxmo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "3aae7dd3-f9d6-44bc-a0f4-49ecf6428b38",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3a6vBuWZdTgQt4Y",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Formatear Respuesta Worker 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "da096f6c-fdde-4ea6-8b74-08f5fa913815",
+  "meta": {
+    "instanceId": "b6d20f06db3e6d28403875541b0c7afd1d9262af1ea51d2ea800503d7f146246"
+  },
+  "nodeGroups": [],
+  "id": "r2AH0RtD1aFTudHa",
+  "tags": []
+}

@@ -1,0 +1,90 @@
+{
+  "name": "worker2_modulo3_pereyra_leonardo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f42f7079-332b-4937-9910-ba1b9e0dfecc",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "pereyral@gmail.com",
+        "subject": "={{ $json.asunto || \"[Soporte Barbería Akira] Consulta / Solicitud de Cliente\" }}",
+        "emailType": "text",
+        "message": "={{ $json.mensaje || \"Se ha recibido una nueva solicitud de soporte o notificación para la Barbería Akira.\" }}",
+        "options": {}
+      },
+      "id": "7ff2bfac-d495-470c-88b2-b8a9145c93e0",
+      "webhookId": "5e0086de-6c3c-441d-a099-3f8fdcbd0541",
+      "name": "Enviar Notificacion Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DrZlJq4QTdaZvn2T",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const gmailResult = $input.first().json;\nreturn {\n  json: {\n    status: \"success\",\n    worker: \"Worker2_Soporte_Gmail\",\n    timestamp: new Date().toISOString(),\n    data: {\n      notificacion_enviada: true,\n      destinatario: \"pereyral@gmail.com\",\n      id_mensaje: gmailResult.id || \"GMAIL_OK\",\n      mensaje: \"Notificación de soporte enviada exitosamente por Gmail.\"\n    }\n  }\n};"
+      },
+      "id": "96992575-9c43-4f9d-8fce-8e0fad0957c3",
+      "name": "Formatear Respuesta Worker 2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Enviar Notificacion Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Notificacion Gmail": {
+      "main": [
+        [
+          {
+            "node": "Formatear Respuesta Worker 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "929e07c7-a3f5-4f5e-add7-6c958bdfc8df",
+  "meta": {
+    "instanceId": "b6d20f06db3e6d28403875541b0c7afd1d9262af1ea51d2ea800503d7f146246"
+  },
+  "nodeGroups": [],
+  "id": "mBWAiqmGGeIaptvH",
+  "tags": []
+}

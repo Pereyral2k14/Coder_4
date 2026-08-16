@@ -1,0 +1,913 @@
+{
+  "name": "checkpoint4_pereyra_leonardo",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "id": "gmail-trigger-entrada-id",
+      "webhookId": "c4-webhook-gmail-trigger-001",
+      "name": "Gmail Trigger - Entrada",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        -16
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DrZlJq4QTdaZvn2T",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-autoreply",
+              "leftValue": "={{ $json.headers?.subject || $json.subject || \"\" }}",
+              "rightValue": "auto-reply",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-outofoffice",
+              "leftValue": "={{ $json.headers?.subject || $json.subject || \"\" }}",
+              "rightValue": "out of office",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-undeliverable",
+              "leftValue": "={{ $json.headers?.subject || $json.subject || \"\" }}",
+              "rightValue": "undeliverable",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-noreply-from",
+              "leftValue": "={{ $json.headers?.from || $json.from?.value?.[0]?.address || \"\" }}",
+              "rightValue": "no-reply@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-noreply2-from",
+              "leftValue": "={{ $json.headers?.from || $json.from?.value?.[0]?.address || \"\" }}",
+              "rightValue": "noreply@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "cond-delivery-status",
+              "leftValue": "={{ $json.headers?.subject || $json.subject || \"\" }}",
+              "rightValue": "delivery status",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "if-anti-bucle-id",
+      "name": "IF Anti-Bucle (Auto-Reply)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -16
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "stop-bucle-id",
+      "name": "STOP - Correo Auto-Generado (Ignorar)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "email_remitente",
+              "value": "={{ $json.from?.value?.[0]?.address || $json.headers?.from || \"desconocido@email.com\" }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "nombre_remitente",
+              "value": "={{ $json.from?.value?.[0]?.name || $json.headers?.from?.split(\"<\")?.[0]?.trim() || \"Cliente Nuevo\" }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "asunto_email",
+              "value": "={{ $json.subject || $json.headers?.subject || \"Sin Asunto\" }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "cuerpo_email",
+              "value": "={{ $json.text || $json.snippet || \"Sin contenido\" }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "timestamp_recepcion",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "email_id",
+              "value": "={{ $json.id || $json.threadId || \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-extraer-contacto-id",
+      "name": "Set - Extraer Datos Contacto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -736,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Yta-1brlj3SumbA11fTuKGcd38upIutWW3I3c2YVxmo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Memoria_Largo_Plazo",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Session_ID",
+              "lookupValue": "={{ $json.email_remitente }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "crm-lookup-sheets-id",
+      "name": "CRM Lookup - Buscar Contacto",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -528,
+        -16
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3a6vBuWZdTgQt4Y",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-exists",
+              "leftValue": "={{ !!$json.Session_ID }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-contacto-existe-id",
+      "name": "IF - ¿Contacto Existe en CRM?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Yta-1brlj3SumbA11fTuKGcd38upIutWW3I3c2YVxmo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Memoria_Largo_Plazo",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ $(\"Set - Extraer Datos Contacto\").first().json.email_remitente }}",
+            "Nombre": "={{ $(\"Set - Extraer Datos Contacto\").first().json.nombre_remitente }}",
+            "Fecha_Actualizacion": "={{ new Date().toISOString() }}",
+            "Resumen_Consolidado": "Ninguno",
+            "Estado_Caso": "Activo",
+            "Datos_Clave": "={{ \"Canal: Email | Asunto: \" + $(\"Set - Extraer Datos Contacto\").first().json.asunto_email }}",
+            "Mensajes_Count": 0
+          },
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Fecha_Actualizacion",
+              "displayName": "Fecha_Actualizacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Resumen_Consolidado",
+              "displayName": "Resumen_Consolidado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Estado_Caso",
+              "displayName": "Estado_Caso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Datos_Clave",
+              "displayName": "Datos_Clave",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Mensajes_Count",
+              "displayName": "Mensajes_Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "crm-crear-contacto-id",
+      "name": "CRM - Crear Nuevo Contacto",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -80,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3a6vBuWZdTgQt4Y",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "Session_ID",
+              "value": "={{ $json.Session_ID || $node[\"Set - Extraer Datos Contacto\"].json.email_remitente }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "Nombre",
+              "value": "={{ $json.Nombre || $node[\"Set - Extraer Datos Contacto\"].json.nombre_remitente || \"Cliente Nuevo\" }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "asunto_email",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.asunto_email }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "cuerpo_email",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.cuerpo_email }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "chatInput",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.cuerpo_email }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "Resumen_Consolidado",
+              "value": "={{ $json.Resumen_Consolidado || \"Ninguno\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "normalizar-contacto-id",
+      "name": "Set - Normalizar Datos Contacto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "openai-chat-model-m4-id",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        352,
+        192
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "wLQTQv52uylmo5W3",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.chatInput }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "CATALOGO",
+              "description": "Consultas sobre servicios, precios, tarifas, combos, cortes de pelo o barba en la Barbería Akira."
+            },
+            {
+              "category": "SOPORTE",
+              "description": "Reclamos, quejas, reportar problemas, solicitud de ayuda humana o contacto con administración."
+            }
+          ]
+        },
+        "options": {
+          "fallback": "other"
+        }
+      },
+      "id": "text-classifier-m4-id",
+      "name": "Text Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "action",
+              "value": "CONSULTAR_CATALOGO",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "query",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.cuerpo_email }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "sessionId",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.Session_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "Nombre",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.Nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "Resumen_Consolidado",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.Resumen_Consolidado }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prep-worker1-payload-id",
+      "name": "Preparar Payload Worker 1 (Anti-Stuffing)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "action",
+              "value": "ENVIAR_NOTIFICACION",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "asunto",
+              "value": "Solicitud de Soporte / Atención - Barbería Akira",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "mensaje",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.cuerpo_email }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "sessionId",
+              "value": "={{ $node[\"Set - Normalizar Datos Contacto\"].json.Session_ID }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prep-worker2-payload-id",
+      "name": "Preparar Payload Worker 2 (Anti-Stuffing)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "r2AH0RtD1aFTudHa",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "exec-worker1-m4-id",
+      "name": "Ejecutar Worker 1 (Catálogo)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "mBWAiqmGGeIaptvH",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "exec-worker2-m4-id",
+      "name": "Ejecutar Worker 2 (Soporte)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    status: \"success\",\n    worker: \"Fallback_M4\",\n    timestamp: new Date().toISOString(),\n    data: {\n      mensaje: \"Consulta recibida por email. Un representante de Barbería Akira se pondrá en contacto a la brevedad.\"\n    }\n  }\n};"
+      },
+      "id": "fallback-m4-id",
+      "name": "Respuesta Fallback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "slack_remitente",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.nombre_remitente + \" <\" + $node[\"Set - Extraer Datos Contacto\"].json.email_remitente + \">\" }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "slack_asunto",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.asunto_email?.substring(0, 120) || \"Sin asunto\" }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "slack_resumen",
+              "value": "={{ $node[\"Set - Extraer Datos Contacto\"].json.cuerpo_email?.replace(/(<([^>]+)>)/gi, \"\").substring(0, 400) || \"Sin contenido\" }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "slack_worker",
+              "value": "={{ $json.worker || \"Agente Barbería Akira\" }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "slack_timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "respuesta_ia",
+              "value": "={{ $json.data?.mensaje || $json.output || \"Consulta procesada por IA.\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-limpiar-payload-slack-id",
+      "name": "Set - Limpiar Payload Slack",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "nuevo-canal",
+          "mode": "name"
+        },
+        "text": "={{ \":email: *Nueva consulta vía email - Barbería Akira*\\n\\n*De:* \" + $json.slack_remitente + \"\\n*Asunto:* \" + $json.slack_asunto + \"\\n\\n*Resumen:*\\n\" + $json.slack_resumen + \"\\n\\n*Worker IA:* \" + $json.slack_worker + \"\\n*Hora:* \" + $json.slack_timestamp }}",
+        "otherOptions": {}
+      },
+      "id": "slack-notificacion-id",
+      "webhookId": "84ec3088-19a4-43d4-b487-0065cde838d9",
+      "name": "Slack - Notificación Operaciones",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        0
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "oOtU1BBNOVdrClL0",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ \"Re: \" + $node[\"Set - Extraer Datos Contacto\"].json.asunto_email }}",
+        "message": "=[BORRADOR GENERADO POR IA - REQUIERE REVISIÓN HUMANA ANTES DE ENVIAR]\n================================================\nEstimado/a {{ $node[\"Set - Normalizar Datos Contacto\"].json.Nombre }},\n\n{{ $node[\"Set - Limpiar Payload Slack\"].json.respuesta_ia }}\n\nAtentamente,\nBarbería Akira - Equipo de Atención al Cliente\n================================================\n[Este borrador fue generado automáticamente por el sistema multi-agente.\nNO fue enviado. Revisá el contenido antes de enviarlo desde tu casilla.]",
+        "options": {}
+      },
+      "id": "gmail-crear-borrador-id",
+      "webhookId": "c4-webhook-gmail-draft-001",
+      "name": "Gmail - Crear Borrador (Human-in-the-Loop)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1696,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DrZlJq4QTdaZvn2T",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger - Entrada": {
+      "main": [
+        [
+          {
+            "node": "IF Anti-Bucle (Auto-Reply)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Anti-Bucle (Auto-Reply)": {
+      "main": [
+        [
+          {
+            "node": "STOP - Correo Auto-Generado (Ignorar)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set - Extraer Datos Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Extraer Datos Contacto": {
+      "main": [
+        [
+          {
+            "node": "CRM Lookup - Buscar Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Lookup - Buscar Contacto": {
+      "main": [
+        [
+          {
+            "node": "IF - ¿Contacto Existe en CRM?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - ¿Contacto Existe en CRM?": {
+      "main": [
+        [
+          {
+            "node": "Set - Normalizar Datos Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM - Crear Nuevo Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM - Crear Nuevo Contacto": {
+      "main": [
+        [
+          {
+            "node": "Set - Normalizar Datos Contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Normalizar Datos Contacto": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Preparar Payload Worker 1 (Anti-Stuffing)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Payload Worker 2 (Anti-Stuffing)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Payload Worker 1 (Anti-Stuffing)": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar Worker 1 (Catálogo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Payload Worker 2 (Anti-Stuffing)": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar Worker 2 (Soporte)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar Worker 1 (Catálogo)": {
+      "main": [
+        [
+          {
+            "node": "Set - Limpiar Payload Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar Worker 2 (Soporte)": {
+      "main": [
+        [
+          {
+            "node": "Set - Limpiar Payload Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta Fallback": {
+      "main": [
+        [
+          {
+            "node": "Set - Limpiar Payload Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Limpiar Payload Slack": {
+      "main": [
+        [
+          {
+            "node": "Slack - Notificación Operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack - Notificación Operaciones": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Crear Borrador (Human-in-the-Loop)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "99d1f2c9-80a0-42c4-92d7-e493b1488b56",
+  "meta": {
+    "instanceId": "b6d20f06db3e6d28403875541b0c7afd1d9262af1ea51d2ea800503d7f146246"
+  },
+  "nodeGroups": [],
+  "id": "AnPRwg7I9Lr1UpFW",
+  "tags": []
+}
